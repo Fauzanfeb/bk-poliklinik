@@ -1,42 +1,53 @@
 <?php
+// Mengimpor konfigurasi database dan memulai sesi
 include_once("../../../config/conn.php");
 session_start();
 
+// Mengecek apakah sesi 'signup' atau 'login' ada
 if (isset($_SESSION['signup']) || isset($_SESSION['login'])) {
   $_SESSION['signup'] = true;
   $_SESSION['login'] = true;
 } else {
+  // Jika tidak ada sesi, arahkan kembali ke halaman sebelumnya
   echo "<meta http-equiv='refresh' content='0; url=..'>";
   die();
 }
+
+// Mengambil data dari sesi untuk ID pasien, nomor rekam medis, nama, dan akses
 $id_pasien = $_SESSION['id'];
 $no_rm = $_SESSION['no_rm'];
 $nama = $_SESSION['username'];
 $akses = $_SESSION['akses'];
 
+// Mengecek jika akses bukan 'pasien', arahkan kembali ke halaman utama
 if ($akses != 'pasien') {
   echo "<meta http-equiv='refresh' content='0; url=..'>";
   die();
 }
 
+// Mengecek apakah form disubmit
 if (isset($_POST['submit'])) {
 
+  // Validasi jika ID jadwal yang dipilih adalah "900", yang menandakan jadwal belum dipilih
   if ($_POST['id_jadwal'] == "900") {
     echo "
         <script>
             alert('Jadwal tidak boleh kosong!');
         </script>
     ";
-    echo "<meta http-equiv='refresh' content='0>";
+    echo "<meta http-equiv='refresh' content='0'>";
   }
 
+  // Memanggil fungsi daftarPoli untuk mendaftarkan pasien ke poli yang dipilih
   if (daftarPoli($_POST) > 0) {
+    // Jika berhasil mendaftar poli
     echo "
         <script>
             alert('Berhasil mendaftar poli');
         </script>
     ";
 } else {
+    // Jika gagal mendaftar poli
     echo "
         <script>
             alert('Gagal mendaftar poli');
@@ -50,39 +61,30 @@ if (isset($_POST['submit'])) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Mengatur metadata halaman dan sumber daya eksternal seperti font dan CSS -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= getenv('APP_NAME') ?> | Dashboard</title>
 
-  <!-- Google Font: Source Sans Pro -->
+  <!-- Memuat berbagai CSS library eksternal seperti fontawesome, ionicons, dan lainnya -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-  <!-- Font Awesome -->
   <link rel="stylesheet" href="http://<?= $_SERVER['HTTP_HOST']?>/bk-poliklinik/plugins/fontawesome-free/css/all.min.css">
-  <!-- Ionicons -->
   <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
-  <!-- Tempusdominus Bootstrap 4 -->
   <link rel="stylesheet" href="http://<?= $_SERVER['HTTP_HOST']?>/bk-poliklinik/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css">
-  <!-- iCheck -->
   <link rel="stylesheet" href="http://<?= $_SERVER['HTTP_HOST']?>/bk-poliklinik/plugins/icheck-bootstrap/icheck-bootstrap.min.css">
-  <!-- JQVMap -->
   <link rel="stylesheet" href="http://<?= $_SERVER['HTTP_HOST']?>/bk-poliklinik/plugins/jqvmap/jqvmap.min.css">
-  <!-- Theme style -->
   <link rel="stylesheet" href="../../../dist/css/adminlte.min.css">
-  <!-- overlayScrollbars -->
   <link rel="stylesheet" href="http://<?= $_SERVER['HTTP_HOST']?>/bk-poliklinik/plugins/overlayScrollbars/css/OverlayScrollbars.min.css">
-  <!-- Daterange picker -->
   <link rel="stylesheet" href="http://<?= $_SERVER['HTTP_HOST']?>/bk-poliklinik/plugins/daterangepicker/daterangepicker.css">
-  <!-- summernote -->
   <link rel="stylesheet" href="http://<?= $_SERVER['HTTP_HOST']?>/bk-poliklinik/plugins/summernote/summernote-bs4.min.css">
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">
 
-
+  <!-- Memasukkan header layout dari file eksternal -->
   <?php include "../../../layouts/header.php"?>
-  <!-- Content Wrapper. Contains page content -->
+
   <div class="content-wrapper">
-    <!-- Content Header (Page header) -->
     <div class="content-header">
       <div class="container-fluid">
         <div class="row mb-2">
@@ -98,87 +100,91 @@ if (isset($_POST['submit'])) {
         </div><!-- /.row -->
       </div><!-- /.container-fluid -->
     </div>
-    <!-- /.content-header -->
 
     <!-- Main content -->
     <section class="content">
       <div class="container-fluid">
+        <div class="row">
+          <div class="col-4">
+            <!-- Form untuk registrasi poli -->
+            <div class="card">
+              <h5 class="card-header bg-primary">Daftar Poli</h5>
+              <div class="card-body">
 
-      <div class="row">
-        <div class="col-4">
-          <!-- Registrarion poli -->
-          <div class="card">
-            <h5 class="card-header bg-primary">Daftar Poli</h5>
-            <div class="card-body">
+                <form action="" method="POST">
+                  <input type="hidden" value="<?= $id_pasien ?>" name="id_pasien">
 
-              <form action="" method="POST">
-                <input type="hidden" value="<?= $id_pasien ?>" name="id_pasien">
-                <div class="mb-3">
-                  <label for="no_rm" class="form-label">Nomor Rekam Medis</label>
-                  <input type="text " class="form-control" id="no_rm" placeholder="nomor rekam medis" name="no_rm" value="<?= $no_rm ?>" disabled>
-                </div>
+                  <!-- Input Nomor Rekam Medis -->
+                  <div class="mb-3">
+                    <label for="no_rm" class="form-label">Nomor Rekam Medis</label>
+                    <input type="text " class="form-control" id="no_rm" placeholder="nomor rekam medis" name="no_rm" value="<?= $no_rm ?>" disabled>
+                  </div>
 
-                <div class="mb-3">
-                  <label for="inputPoli" class="form-label">Pilih Poli</label>
-                  <select id="inputPoli" class="form-control">
-                    <option>Open this select menu</option>
-                    <?php
-                    $data = $pdo->prepare("SELECT * FROM poli");
-                    $data->execute();
-                    if ($data->rowCount() == 0) {
-                      echo "<option>Tidak ada poli</option>";
-                    } else {
-                      while($d = $data->fetch()) {
-                    ?>
-                      <option value="<?= $d['id'] ?>"><?= $d['nama_poli'] ?></option> 
-                    <?php
+                  <!-- Dropdown untuk memilih Poli -->
+                  <div class="mb-3">
+                    <label for="inputPoli" class="form-label">Pilih Poli</label>
+                    <select id="inputPoli" class="form-control">
+                      <option>Open this select menu</option>
+                      <?php
+                      // Menampilkan daftar poli dari database
+                      $data = $pdo->prepare("SELECT * FROM poli");
+                      $data->execute();
+                      if ($data->rowCount() == 0) {
+                        echo "<option>Tidak ada poli</option>";
+                      } else {
+                        while($d = $data->fetch()) {
+                      ?>
+                        <option value="<?= $d['id'] ?>"><?= $d['nama_poli'] ?></option> 
+                      <?php
+                        }
                       }
-                    }
-                    ?>
-                  </select>
-                </div>
+                      ?>
+                    </select>
+                  </div>
+
+                  <!-- Dropdown untuk memilih Jadwal -->
+                  <div class="mb-3">
+                    <label for="inputJadwal" class="form-label">Pilih Jadwal</label>
+                    <select id="inputJadwal" class="form-control" name="id_jadwal">
+                      <option value="900">Open this select menu</option>
+                      <?php
+                      // Mengambil data jadwal pemeriksaan dari database
+                      $data = $pdo->prepare("SELECT * FROM jadwal_periksa");
+                      $data->execute();
+                      if ($data->rowCount() == 0) {
+                        echo "<option>Tidak ada poli</option>";
+                      } else {
+                        while($d = $data->fetch()) {
+                      ?>
+                        <option value="<?= $d['id'] ?>"><?= $d['hari'] ?>,<?= $d['jam_mulai'] ?> - <?= $d['jam_selesai'] ?></option> 
+                      <?php
+                        }
+                      }
+                      ?>
+                    </select>
+                  </div>
+
+                  <!-- Input Keluhan -->
+                  <div class="mb-3">
+                    <label for="keluhan" class="form-label">Keluhan</label>
+                    <textarea class="form-control" id="keluhan" rows="3" name="keluhan"></textarea>
+                  </div>
+                  <!-- Tombol untuk submit form -->
+                  <button type="submit" name="submit" class="btn btn-primary">Daftar</button>
+                </form>
                 
-                <div class="mb-3">
-                  <label for="inputJadwal" class="form-label">Pilih Jadwal</label>
-                  <select id="inputJadwal" class="form-control" name="id_jadwal">
-                    <option value="900">Open this select menu</option>
-                    <?php
-                    // $data = $pdo->prepare("SELECT * FROM jadwal_periksa WHERE aktif = 'Y' ");
-                    $data = $pdo->prepare("SELECT * FROM jadwal_periksa");
-                    $data->execute();
-                    if ($data->rowCount() == 0) {
-                      echo "<option>Tidak ada poli</option>";
-                    } else {
-                      while($d = $data->fetch()) {
-                    ?>
-                      <option value="<?= $d['id'] ?>"><?= $d['hari'] ?>,<?= $d['jam_mulai'] ?> - <?= $d['jam_selesai'] ?></option> 
-                    <?php
-                      }
-                    }
-                    ?>
-                  </select>
-                </div>
-
-                <div class="mb-3">
-                  <label for="keluhan" class="form-label">Keluhan</label>
-                  <textarea class="form-control" id="keluhan" rows="3" name="keluhan"></textarea>
-                </div>
-                <button type="submit" name="submit" class="btn btn-primary">Daftar</button>
-              </form>
-              
+              </div>
             </div>
           </div>
-          <!-- End registrarion poli -->
-        </div>
 
-        <div class="col-8">
-          <!-- Registration poli history -->
-          <div class="card">
-            <h5 class="card-header bg-primary">Riwayat daftar poli</h5>
-            <div class="card-body">
-            <table class="table table-striped">
-              <thead>
-                  <tr>
+          <div class="col-8">
+            <!-- Tabel riwayat pendaftaran poli -->
+            <div class="card">
+              <h5 class="card-header bg-primary">Riwayat daftar poli</h5>
+              <div class="card-body">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
                       <th scope="col">No.</th>
                       <th scope="col">Poli</th>
                       <th scope="col">Dokter</th>
@@ -188,35 +194,36 @@ if (isset($_POST['submit'])) {
                       <th scope="col">Antrian</th>
                       <th scope="col">Status</th>
                       <th scope="col">Aksi</th>
-                  </tr>
-              </thead>
-              <tbody>
-                  <?php
-                  $query = "
-                      SELECT d.nama_poli as poli_nama,
-                            c.nama as dokter_nama, 
-                            b.hari as jadwal_hari, 
-                            b.jam_mulai as jadwal_mulai, 
-                            b.jam_selesai as jadwal_selesai,
-                            a.no_antrian as antrian,
-                            a.id as poli_id,
-                            a.status_periksa,
-                            e.tgl_periksa
-                      FROM daftar_poli as a
-                      INNER JOIN jadwal_periksa as b ON a.id_jadwal = b.id
-                      INNER JOIN dokter as c ON b.id_dokter = c.id
-                      INNER JOIN poli as d ON c.id_poli = d.id
-                      LEFT JOIN periksa as e ON a.id = e.id_daftar_poli 
-                      WHERE a.id_pasien = ?
-                      ORDER BY a.id DESC";
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <?php
+                    // Mengambil data riwayat pendaftaran poli untuk pasien
+                    $query = "
+                        SELECT d.nama_poli as poli_nama,
+                              c.nama as dokter_nama, 
+                              b.hari as jadwal_hari, 
+                              b.jam_mulai as jadwal_mulai, 
+                              b.jam_selesai as jadwal_selesai,
+                              a.no_antrian as antrian,
+                              a.id as poli_id,
+                              a.status_periksa,
+                              e.tgl_periksa
+                        FROM daftar_poli as a
+                        INNER JOIN jadwal_periksa as b ON a.id_jadwal = b.id
+                        INNER JOIN dokter as c ON b.id_dokter = c.id
+                        INNER JOIN poli as d ON c.id_poli = d.id
+                        LEFT JOIN periksa as e ON a.id = e.id_daftar_poli 
+                        WHERE a.id_pasien = ?
+                        ORDER BY a.id DESC";
 
-                  $stmt = $pdo->prepare($query);
-                  $stmt->execute([$id_pasien]);
-                  $no = 0;
+                    $stmt = $pdo->prepare($query);
+                    $stmt->execute([$id_pasien]);
+                    $no = 0;
 
-                  if ($stmt->rowCount() == 0) {
+                    if ($stmt->rowCount() == 0) {
                       echo "<tr><td colspan='9' align='center'>Tidak ada data</td></tr>";
-                  } else {
+                    } else {
                       while ($p = $stmt->fetch()) {
                           $no++;
                           ?>
@@ -255,53 +262,45 @@ if (isset($_POST['submit'])) {
                   }
                   ?>
               </tbody>
-          </table>
+            </table>
 
-            </div>
           </div>
-        <!-- End registration poli history -->
         </div>
       </div>
-
-      </div><!-- /.container-fluid -->
     </section>
-    <!-- /.content -->
   </div>
-  <!-- /.content-wrapper -->
+
+  <!-- Memasukkan footer layout dari file eksternal -->
   <?php include "../../../layouts/footer.php"; ?>
 </div>
-<!-- ./wrapper -->
+
+<!-- Memuat file JavaScript eksternal -->
 <?php include "../../../layouts/pluginsexport.php"; ?>
 
 <script>
+  // Fungsi untuk menangani perubahan pada dropdown Poli dan memuat jadwal sesuai dengan poli yang dipilih
   document.getElementById('inputPoli').addEventListener('change', function() {
     var poliId = this.value; // Ambil nilai ID poli yang dipilih
     loadJadwal(poliId); // Panggil fungsi untuk memuat jadwal dokter
   });
 
   function loadJadwal(poliId) {
-    // Buat objek XMLHttpRequest
+    // Membuat objek XMLHttpRequest untuk permintaan Ajax
     var xhr = new XMLHttpRequest();
 
-    // Konfigurasi permintaan Ajax
-    // xhr.open('GET', 'http://localhost/bk-poliklinik/pages/pasien/poli/get_jadwal.php?poli_id=' + poliId, true);
+    // Menyusun permintaan GET untuk memuat jadwal berdasarkan poli yang dipilih
     xhr.open('GET', 'http://' + window.location.host + '/bk-poliklinik/pages/pasien/poli/get_jadwal.php?poli_id=' + poliId, true);
 
-
-    // Atur header untuk menentukan bahwa respons yang diharapkan adalah HTML
-    xhr.setRequestHeader('Content-Type', 'text/html');
-
-    // Atur fungsi callback ketika permintaan selesai
-    xhr.onload = function() {
-      if (xhr.status === 200) {
-        // Jika permintaan berhasil, perbarui opsi pada select pilih jadwal
+    // Menetapkan header respons
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        // Menangani perubahan dropdown jadwal berdasarkan respons
         document.getElementById('inputJadwal').innerHTML = xhr.responseText;
       }
     };
-
-    // Kirim permintaan
-    xhr.send();
+    xhr.send(); // Kirim permintaan Ajax
   }
 </script>
+
 </body>
 </html>

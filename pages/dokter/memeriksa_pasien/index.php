@@ -1,23 +1,31 @@
 <?php
+// Mengimpor koneksi database
 include_once("../../../config/conn.php");
+// Memulai sesi
 session_start();
 
+// Mengecek apakah user sudah login
 if (isset($_SESSION['login'])) {
   $_SESSION['login'] = true;
 } else {
+  // Jika belum login, arahkan ke halaman login
   echo "<meta http-equiv='refresh' content='0; url=../auth/login.php'>";
-  die();
+  die(); // Menghentikan eksekusi lebih lanjut
 }
 
+// Mengambil data pengguna yang sedang login
 $nama = $_SESSION['username'];
 $akses = $_SESSION['akses'];
-$id_dokter = $_SESSION['id']; //Id dokter login
+$id_dokter = $_SESSION['id']; // ID dokter yang login
 
+// Mengecek apakah akses yang dimiliki adalah dokter
 if ($akses != 'dokter') {
+  // Jika akses bukan dokter, arahkan ke halaman utama
   echo "<meta http-equiv='refresh' content='0; url=..'>";
   die();
 }
 
+// Mengambil data pasien yang terkait dengan dokter yang sedang login
 $pasien = query("SELECT
                   periksa.id AS id_periksa,
                   pasien.id AS id_pasien,
@@ -30,34 +38,37 @@ $pasien = query("SELECT
                 INNER JOIN daftar_poli ON pasien.id = daftar_poli.id_pasien
                 LEFT JOIN periksa ON daftar_poli.id = periksa.id_daftar_poli
                 INNER JOIN jadwal_periksa ON daftar_poli.id_jadwal = jadwal_periksa.id
-                WHERE jadwal_periksa.id_dokter = $id_dokter"); //Mengambil berdasarkan id dokter yg masuk
+                WHERE jadwal_periksa.id_dokter = $id_dokter"); // Mengambil data berdasarkan id dokter
 
+// Mengambil data pemeriksaan (periksa)
 $periksa = query("SELECT * from periksa");
 
+// Mengambil data obat-obatan
 $obat = query("SELECT * FROM obat");
 ?>
 
 <?php
+// Menentukan title halaman
 $title = 'Poliklinik | Daftar Periksa Pasien';
 
-// Breadcrumb section
+// Membuat breadcrumb untuk navigasi
 ob_start(); ?>
 <ol class="breadcrumb float-sm-right">
   <li class="breadcrumb-item"><a href="<?= $base_dokter; ?>">Home</a></li>
   <li class="breadcrumb-item active">Daftar Periksa</li>
 </ol>
 <?php
-$breadcrumb = ob_get_clean();
-// ob_flush();
+$breadcrumb = ob_get_clean(); // Menyimpan breadcrumb untuk digunakan nanti
 
-// Title Section
+// Menentukan main title halaman
 ob_start(); ?>
 Daftar Periksa Pasien
 <?php
-$main_title = ob_get_clean();
-// ob_flush();
+$main_title = ob_get_clean(); // Menyimpan main title untuk digunakan nanti
+?>
 
-// Content section
+<?php
+// Membuat konten utama halaman
 ob_start();
 ?>
         <div class="card">
@@ -80,9 +91,10 @@ ob_start();
 
                     <td>
                       <?php if ($pasiens["status_periksa"] == 0) { ?>
-                        <!-- <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalTambahPeriksa">Periksa</button> -->
+                        <!-- Menampilkan tombol "Periksa" jika pasien belum diperiksa -->
                         <a href="create.php/<?= $pasiens['id_pasien'] ?>" class="btn btn-primary"><i class="fas fa-stethoscope"></i> Periksa </a>
                         <?php } else { ?>
+                          <!-- Menampilkan tombol "Edit" jika pasien sudah diperiksa -->
                           <a href="edit.php/<?= $pasiens['id_periksa'] ?>" class="btn btn-warning"><i class="fa fa-edit"></i> Edit </a>
                       <?php } ?>
                     </td>
@@ -93,7 +105,7 @@ ob_start();
           </div>
         </div>
 
-        <!-- Modal -->
+        <!-- Modal untuk memasukkan detail pemeriksaan -->
         <div class="modal fade" id="modalTambahPeriksa" tabindex="-1" role="dialog" aria-labelledby="modalTambahPeriksaLabel" aria-hidden="true">
           <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -104,9 +116,8 @@ ob_start();
                 </button>
               </div>
               <div class="modal-body">
-                <!-- Form untuk menambahkan data periksa -->
+                <!-- Form untuk menambahkan data pemeriksaan -->
                 <form action="" method="POST">
-                  <!-- Kolom input untuk menambahkan data -->
                   <div class="form-group">
                     <label for="nama_pasien">Nama Pasien</label>
                     <input type="text" class="form-control" id="nama_pasien" name="nama_pasien" value="<?= $pasiens["nama_pasien"] ?>" disabled>
@@ -131,7 +142,7 @@ ob_start();
                     </select>
                   </div>
 
-                  <!-- Tombol untuk mengirim form -->
+                  <!-- Tombol untuk menyimpan data pemeriksaan -->
                   <button type="submit" class="btn btn-primary" id="simpan_periksa" name="simpan_periksa">Simpan</button>
                 </form>
               </div>
@@ -140,28 +151,29 @@ ob_start();
         </div>
 
         <?php
+        // Mengecek apakah tombol simpan periksa sudah ditekan
         if (isset($_POST['simpan_periksa'])) {
+          // Mengecek apakah ID sudah ada
           if (isset($_POST['$id'])) {
             try {
               $tgl_periksa = mysqli_real_escape_string($conn, $_POST['tgl_periksa']);
               $catatan = mysqli_real_escape_string($conn, $_POST['catatan']);
 
+              // Menyimpan data pemeriksaan ke database
               $query = "INSERT INTO pasien VALUES ('', '$tgl_periksa', '$catatan')";
               mysqli_query($conn, $query);
             } catch (\Exception $e) {
-              var_dump($e->getMessage());
+              var_dump($e->getMessage()); // Menampilkan pesan error jika terjadi kesalahan
             }
           }
         }
         ?>
     </div>
 
-    <?php
+<?php
+// Menyimpan konten utama halaman
 $content = ob_get_clean();
-// ob_flush();
-
-// // JS Section
-// ob_start();
 ?>
 
-  <?php include_once "../../../layouts/index.php"; ?>
+<!-- Menyertakan layout halaman utama -->
+<?php include_once "../../../layouts/index.php"; ?>

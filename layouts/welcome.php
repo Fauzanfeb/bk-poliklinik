@@ -36,8 +36,8 @@
             <div class="row gx-5 justify-content-center">
                 <div class="col-lg-6">
                     <div class="text-center my-5">
-                        <h1 class="display-5 fw-bolder text-white mb-2">Sistem Temu Janji <br>Pasien - Dokter</h1>
-                        <p class="lead text-white-50 mb-4">Bimbingan Karir 2023 Bidang Web</p>
+                        <h1 class="display-5 fw-bolder text-white mb-2">Poliklinik <br>Pasien - Dokter</h1>
+                        <p class="lead text-white-50 mb-4">Bimbingan Karir 2024 Bidang Web</p>
                         <!-- <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
                                 <a class="btn btn-primary btn-lg px-4 me-sm-3" href="#features">Get Started</a>
                                 <a class="btn btn-outline-light btn-lg px-4" href="#!">Learn More</a>
